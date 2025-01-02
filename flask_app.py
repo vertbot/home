@@ -30,7 +30,6 @@ def index():
             writer.writerow([name, weight, timestamp])
         return render_template('thank_you.html', name=name)
     
-    
     return render_template('index.html')
 
 @app.route('/percentage_change', methods=['GET'])
@@ -75,8 +74,11 @@ def percentage_change():
                 latest_time = datetime.datetime.strptime(latest_timestamps[name], time_format)
                 time_difference = latest_time - oldest_time
                 time_differences[name] = time_difference
+            
+            # Sort by percent change (lowest to highest)
+            sorted_percent_changes = dict(sorted(percent_changes.items(), key=lambda item: float(item[1].strip('%')) if isinstance(item[1], str) and item[1].endswith('%') else float('inf')))
                         
-        return render_template('percentage_change.html', percent_changes=percent_changes, earliest_timestamps=earliest_timestamps, latest_timestamps=latest_timestamps, time_differences=time_differences)
+        return render_template('percentage_change.html', percent_changes=sorted_percent_changes, earliest_timestamps=earliest_timestamps, latest_timestamps=latest_timestamps, time_differences=time_differences)
     except Exception as e:
         return render_template('percentage_change.html', error=str(e))
 
@@ -117,10 +119,10 @@ def plot():
             plot.figure.set_size_inches(12, 6)  # Make the graph wider
             plot.set_xticklabels(plot.get_xticklabels(), rotation=45)  # Rotate datetime labels
             plot.set_ylabel('Percent Change', fontsize=8)  # Make y-axis label smaller
-            plot.figure.savefig('static/plot.png', bbox_inches='tight')  # Ensure nothing is cut off
+            plot.figure.savefig('plot.png', bbox_inches='tight')  # Ensure nothing is cut off
             plot.figure.clf()
             
-        return render_template('plot.html', plot_file='static/plot.png')
+        return render_template('plot.html', plot_file='plot.png')
     except Exception as e:
         return render_template('plot.html', error=str(e))
    
