@@ -5,7 +5,7 @@ import seaborn as sns
 import pandas as pd
 import matplotlib
 matplotlib.use('Agg')
-import matplotlib.pyplot as plt
+
 
 app = Flask(__name__)
 
@@ -17,39 +17,8 @@ with open(CSV_FILE, 'a', newline='') as f:
     if f.tell() == 0:  # If file is empty
         writer.writerow(['Name', 'Weight', 'Timestamp'])
 
-def plot():
-    with open(CSV_FILE, 'r') as f:
-        reader = list(csv.reader(f))
-        if len(reader) < 3:  # Header + at least 2 records
-            return None
-        
-        data = []
-        for row in reader[1:]:  # Skip header
-            name, weight, timestamp = row
-            weight = float(weight)
-            timestamp = datetime.datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
-            data.append([name, weight, timestamp])
-        
-        df = pd.DataFrame(data, columns=['Name', 'Weight', 'Timestamp'])
-        
-        # Calculate percentage change
-        df['PercentChange'] = df.groupby('Name')['Weight'].pct_change() * 100
-        
-        # Plotting
-        plt.figure(figsize=(10, 6))
-        sns.lineplot(data=df, x='Timestamp', y='PercentChange', hue='Name', marker='o')
-        plt.title('Percentage Change in Weight Over Time')
-        plt.xlabel('Timestamp')
-        plt.ylabel('Percentage Change')
-        plt.xticks(rotation=45)
-        plt.tight_layout()
-        
-        # Save plot to a file
-        plot_file = 'static/plot.png'
-        plt.savefig(plot_file)
-        plt.close()
-        return plot_file
 
+ 
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
@@ -113,12 +82,55 @@ def percentage_change():
                 latest_time = datetime.datetime.strptime(latest_timestamps[name], time_format)
                 time_difference = latest_time - oldest_time
                 time_differences[name] = time_difference
-                
-        plot_file = plot()
-        
-        return render_template('percentage_change.html', percent_changes=percent_changes, earliest_timestamps=earliest_timestamps, latest_timestamps=latest_timestamps, time_differences=time_differences, plot_file=plot_file)
+                        
+        return render_template('percentage_change.html', percent_changes=percent_changes, earliest_timestamps=earliest_timestamps, latest_timestamps=latest_timestamps, time_differences=time_differences)
     except Exception as e:
         return render_template('percentage_change.html', error=str(e))
+
+@app.route('/plot', methods=['GET'])
+def plot():
+    try:
+        with open(CSV_FILE, 'r') as f:
+            reader = list(csv.reader(f))
+            if len(reader) < 3:  # Header + at least 2 records
+                return render_template('plot.html', error="Not enough data to create plot.")
+            
+            data = {}
+            for row in reader[1:]:  # Skip header
+                name, weight, timestamp = row
+                weight = float(weight)
+                if name not in data:
+                    data[name] = []
+                data[name].append((timestamp, weight))
+            
+            # Create a DataFrame for plotting
+            plot_data = []
+            for name, weights in data.items():
+                weights.sort()  # Sort by timestamp
+                for i in range(1, len(weights)):
+                    prev_weight = weights[i-1][1]
+                    curr_weight = weights[i][1]
+                    if prev_weight == 0:
+                        percent_change = 0
+                    else:
+                        percent_change = ((curr_weight - prev_weight) / prev_weight) * 100
+                    plot_data.append([name, weights[i][0], percent_change])
+            
+            df = pd.DataFrame(plot_data, columns=['Name', 'Timestamp', 'Percent Change'])
+            
+            # Plotting
+            sns.set_theme(style="whitegrid")
+            plot = sns.lineplot(x='Timestamp', y='Percent Change', hue='Name', data=df, marker='o')
+            plot.figure.set_size_inches(12, 6)  # Make the graph wider
+            plot.set_xticklabels(plot.get_xticklabels(), rotation=45)  # Rotate datetime labels
+            plot.set_ylabel('Percent Change', fontsize=8)  # Make y-axis label smaller
+            plot.figure.savefig('static/plot.png', bbox_inches='tight')  # Ensure nothing is cut off
+            plot.figure.clf()
+            
+        return render_template('plot.html', plot_file='static/plot.png')
+    except Exception as e:
+        return render_template('plot.html', error=str(e))
+   
 
 if __name__ == '__main__':
     app.run(debug=True)

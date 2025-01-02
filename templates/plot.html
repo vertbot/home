@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weight Change Plot</title>
+</head>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/percentage_change">Rankings</a></li>
+            <li><a href="/plot">Graph</a></li>
+
+        </ul>
+    </nav>
+<div class="container">
+    <h1>Weight Change Plot</h1>
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% else %}
+        <img src="{{ url_for('static', filename='plot.png') }}" alt="Weight Change Plot">
+    {% endif %}
+    <br>
+</div>
+</body>
+</html>
