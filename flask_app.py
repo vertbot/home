@@ -30,15 +30,8 @@ def index():
             writer.writerow([name, weight, timestamp])
         return render_template('thank_you.html', name=name)
     
-    # Read unique names from the CSV file
-    unique_names = set()
-    with open(CSV_FILE, 'r') as f:
-        reader = csv.reader(f)
-        next(reader)  # Skip header
-        for row in reader:
-            unique_names.add(row[0])
     
-    return render_template('index.html', unique_names=unique_names)
+    return render_template('index.html')
 
 @app.route('/percentage_change', methods=['GET'])
 def percentage_change():
