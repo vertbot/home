@@ -4,6 +4,8 @@ import datetime
 import seaborn as sns
 import pandas as pd
 import matplotlib
+import io
+import base64
 matplotlib.use('Agg')
 
 
@@ -112,19 +114,30 @@ def plot():
                     plot_data.append([name, weights[i][0], percent_change])
             
             df = pd.DataFrame(plot_data, columns=['Name', 'Timestamp', 'Percent Change'])
+            df['Timestamp'] = pd.to_datetime(df['Timestamp'])  # Convert 'Timestamp' to datetime
             
             # Plotting
             sns.set_theme(style="whitegrid")
             plot = sns.lineplot(x='Timestamp', y='Percent Change', hue='Name', data=df, marker='o')
             plot.figure.set_size_inches(12, 6)  # Make the graph wider
-            plot.set_xticklabels(plot.get_xticklabels(), rotation=45)  # Rotate datetime labels
+            import matplotlib.dates as mdates
+            plot.xaxis.set_major_locator(mdates.AutoDateLocator())
+            plot.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M:%S'))
+            plot.tick_params(axis='x', rotation=45)  # Rotate datetime labels
             plot.set_ylabel('Percent Change', fontsize=8)  # Make y-axis label smaller
-            plot.figure.savefig('plot.png', bbox_inches='tight')  # Ensure nothing is cut off
+            
+            # Save plot to a bytes buffer
+            buf = io.BytesIO()
+            plot.figure.savefig(buf, format='png', bbox_inches='tight')  # Ensure nothing is cut off
+            buf.seek(0)
             plot.figure.clf()
             
-        return render_template('plot.html', plot_file='plot.png')
+            plot_data = base64.b64encode(buf.getvalue()).decode('utf-8')
+            
+        return render_template('plot.html', plot_data=plot_data)
     except Exception as e:
         return render_template('plot.html', error=str(e))
+
    
 
 if __name__ == '__main__':
