@@ -27,12 +27,21 @@
         <input type="hidden" name="name" value="{{ name }}">
         <input type="hidden" name="weight" value="{{ weight }}">
         <input type="hidden" name="timestamp" value="{{ timestamp }}">
-        <button type="submit">If this is not correct, you can delete this entry.  Click Here.</button>
+        <p><strong>If this is not correct, you can ... </strong> </p>
+        <p><a href="/">Go back to the main page</a> or  <button type="submit">Delete Entry</button> </p>
     </form>
     <br>
     <br>
-    <a href="/">Go back to the main page</a>
-
+    <br>
+    <div class="nick-checker">
+        <hp><strong>Nick Checker.  Logging this information to a security log</strong></p>
+        <p><strong>IP Address: </strong>{{ ip_address }}</p>
+        <p><strong>Location: </strong>{{ location }}</p>
+        <p><strong>Browser:</strong> {{ browser }} {{ browser_version }}</p>
+        <p><strong>Operating System: </strong>{{ os }} {{ os_version }}</p>
+        <p><strong>Device:</strong> {{ device }} {{ device_brand }} {{ device_model }}</p>
+    </div>
 </div>
 </body>
 </html>
+

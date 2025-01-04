@@ -23,21 +23,10 @@ with open(CSV_FILE, 'a', newline='') as f:
 
 
  
+# Removed duplicate index function
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    if request.method == 'POST':
-        name = request.form['name']
-        weight = float(request.form['weight'])
-        timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        with open(CSV_FILE, 'a', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow([name, weight, timestamp])
-        return render_template('thank_you.html', name=name, weight=weight, timestamp=timestamp)
-    
-    return render_template('index.html')
-
-@app.route('/user_info', methods=['GET'])
-def user_info():
     user_agent = request.headers.get('User-Agent')
     user_agent_parsed = parse(user_agent)
     
@@ -63,8 +52,17 @@ def user_info():
     # Store information in user_info.log
     with open('user_info.log', 'a') as log_file:
         log_file.write(f"{ip_address},{location},{browser} {browser_version},{os} {os_version},{device} {device_brand} {device_model},{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-    
-    return render_template('user_info.html', ip_address=ip_address, location=location, browser=browser, browser_version=browser_version, os=os, os_version=os_version, device=device, device_brand=device_brand, device_model=device_model)
+
+    if request.method == 'POST':
+        name = request.form['name']
+        weight = float(request.form['weight'])
+        timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        with open(CSV_FILE, 'a', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow([name, weight, timestamp])
+        return render_template('thank_you.html', name=name, weight=weight, timestamp=timestamp,ip_address=ip_address, location=location, browser=browser, browser_version=browser_version, os=os, os_version=os_version, device=device, device_brand=device_brand, device_model=device_model)
+    return render_template('index.html')
+
 
 
 @app.route('/delete_entry', methods=['POST'])
@@ -83,8 +81,6 @@ def delete_entry():
                 writer.writerow(row)
     
     return render_template('entry_deleted.html', name=name, weight=weight, timestamp=timestamp)
-
-
 
 @app.route('/percentage_change', methods=['GET'])
 def percentage_change():
