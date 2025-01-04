@@ -17,22 +17,14 @@
         </ul>
     </nav>
     <div class="container">
-    <h1>Thank You!</h1>
-    <p>Your entry has been recorded.</p>
-    <p>Name: {{ name }}</p>
-    <p>Weight: {{ weight }}</p>
-    <p>Timestamp: {{ timestamp }}</p>
-
-    <form action="/delete_entry" method="post">
-        <input type="hidden" name="name" value="{{ name }}">
-        <input type="hidden" name="weight" value="{{ weight }}">
-        <input type="hidden" name="timestamp" value="{{ timestamp }}">
-        <button type="submit">If this is not correct, you can delete this entry.  Click Here.</button>
-    </form>
-    <br>
-    <br>
+    <h1>Entry Deleted</h1>
+    <p>The following entry has been successfully deleted:</p>
+    <ul>
+        <li>Name: {{ name }}</li>
+        <li>Weight: {{ weight }}</li>
+        <li>Timestamp: {{ timestamp }}</li>
+    </ul>
     <a href="/">Go back to the main page</a>
-
 </div>
 </body>
 </html>

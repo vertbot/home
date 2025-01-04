@@ -7,23 +7,22 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
-
 </head>
 <body>
-        <nav>
-            <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="/percentage_change">Rankings</a></li>
-                <li><a href="/plot">Graph</a></li>
-
-            </ul>
-        </nav>
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/percentage_change">Rankings</a></li>
+            <li><a href="/plot">Graph</a></li>
+        </ul>
+    </nav>
     <div class="container">
         <h1>Weight Tracker</h1>
         <form method="POST">
             <div class="form-group">
                 <label for="name">Name</label>
                 <select id="name" name="name">
+                    <option value="" selected disabled>Select a name</option>
                     <option value="Dad">Dad</option>
                     <option value="Mom">Mom</option>
                     <option value="Noah">Noah</option>

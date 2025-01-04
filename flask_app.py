@@ -6,6 +6,8 @@ import pandas as pd
 import matplotlib
 import io
 import base64
+from user_agents import parse
+import requests
 matplotlib.use('Agg')
 
 
@@ -30,9 +32,59 @@ def index():
         with open(CSV_FILE, 'a', newline='') as f:
             writer = csv.writer(f)
             writer.writerow([name, weight, timestamp])
-        return render_template('thank_you.html', name=name)
+        return render_template('thank_you.html', name=name, weight=weight, timestamp=timestamp)
     
     return render_template('index.html')
+
+@app.route('/user_info', methods=['GET'])
+def user_info():
+    user_agent = request.headers.get('User-Agent')
+    user_agent_parsed = parse(user_agent)
+    
+    ip_address = request.headers.get('X-Forwarded-For', request.remote_addr)
+    if ip_address:
+        ip_address = ip_address.split(',')[0].strip()  # Get the first IP if there are multiple
+    
+    try:
+        response = requests.get(f'http://ip-api.com/json/{ip_address}')
+        location_data = response.json()
+        location = f"{location_data['city']}, {location_data['regionName']}, {location_data['country']}"
+    except Exception as e:
+        location = f"Could not determine location: {str(e)}"
+    
+    browser = user_agent_parsed.browser.family
+    browser_version = user_agent_parsed.browser.version_string
+    os = user_agent_parsed.os.family
+    os_version = user_agent_parsed.os.version_string
+    device = user_agent_parsed.device.family
+    device_brand = user_agent_parsed.device.brand
+    device_model = user_agent_parsed.device.model
+    
+    # Store information in user_info.log
+    with open('user_info.log', 'a') as log_file:
+        log_file.write(f"{ip_address},{location},{browser} {browser_version},{os} {os_version},{device} {device_brand} {device_model},{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+    
+    return render_template('user_info.html', ip_address=ip_address, location=location, browser=browser, browser_version=browser_version, os=os, os_version=os_version, device=device, device_brand=device_brand, device_model=device_model)
+
+
+@app.route('/delete_entry', methods=['POST'])
+def delete_entry():
+    name = request.form['name']
+    weight = float(request.form['weight'])
+    timestamp = request.form['timestamp']
+    
+    with open(CSV_FILE, 'r') as f:
+        rows = list(csv.reader(f))
+    
+    with open(CSV_FILE, 'w', newline='') as f:
+        writer = csv.writer(f)
+        for row in rows:
+            if row != [name, str(weight), timestamp]:
+                writer.writerow(row)
+    
+    return render_template('entry_deleted.html', name=name, weight=weight, timestamp=timestamp)
+
+
 
 @app.route('/percentage_change', methods=['GET'])
 def percentage_change():
@@ -138,7 +190,7 @@ def plot():
     except Exception as e:
         return render_template('plot.html', error=str(e))
 
-   
+  
 
 if __name__ == '__main__':
     app.run(debug=True)
